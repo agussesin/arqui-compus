@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "retardo.h"
 
 void retardo(int ciclos);
 

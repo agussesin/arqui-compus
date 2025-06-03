@@ -1,5 +1,5 @@
 #include <stdlib.h>
-void retardo(unsigned long int a)
+void retardo(int a)
 {
     while (a)
         a--;

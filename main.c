@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "menu.h"
+#include "auto_fantastico.h"
 
 void autoFantastico(int velocidad);
 void elChoque(int velocidad);
