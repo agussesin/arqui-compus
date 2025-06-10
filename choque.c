@@ -1,25 +1,26 @@
 #include <stdio.h>
-
-void retardo(int ciclos);
-
-void print_bin(unsigned char byte)
-{
-    for (int i = 7; i >= 0; i--)
-    {
-        printf("%c", (byte & (1 << i)) ? '1' : '0');
-    }
-}
+#include "retardo.h"
+#include "util.h"
 
 void elChoque(int velocidad)
 {
     unsigned char tabla[7] = {0x80, 0x42, 0x24, 0x18, 0x18, 0x24, 0x42};
+    int direccion = 1;
+    int index = 0;
 
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < 14; i++)
     {
         printf("Paso %d: ", i);
-        print_bin(tabla[i]);
+        print_bin(tabla[index]);
         printf("\n");
         retardo(velocidad);
+
+        if (index == 6)
+            direccion = -1;
+        else if (index == 0)
+            direccion = 1;
+
+        index += direccion;
     }
 
     printf("Secuencia 'El Choque' finalizada.\n");

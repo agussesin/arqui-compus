@@ -1,7 +1,6 @@
-#include <stdlib.h>
+#include <unistd.h>
+
 void retardo(int a)
 {
-    while (a)
-        a--;
+    usleep(a); // Pausa en microsegundos
 }
-// solo consume tiempo

@@ -2,24 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include "menu.h"
+#include "retardo.h"
 #include "auto_fantastico.h"
+#include "choque.h"
+#include "ascensor.h"
+#include "explosion_contraccion.h"
 
 void autoFantastico(int velocidad);
 void elChoque(int velocidad);
-void pedirPassword();
-
-void mostrarMenu()
-{
-    printf("\n--- MENU DE SECUENCIAS ---\n");
-    printf("1. Auto Fantástico\n");
-    printf("2. El Choque\n");
-    printf("3. Salir\n");
-    printf("Seleccione una opción: ");
-}
+void ascensor(int velocidad);
+// void pedirPassword();
 
 int main()
 {
-    pedirPassword();
+    // pedirPassword();
+
     int opcion = 0;
     int velocidad = 100000;
 
@@ -37,6 +34,12 @@ int main()
             elChoque(velocidad);
             break;
         case 3:
+            ascensor(velocidad);
+            break;
+        case 4:
+            explosionYContraccion(velocidad);
+            break;
+        case 5:
             printf("Saliendo...\n");
             return 0;
         default:

@@ -1,15 +1,7 @@
 #include <stdio.h>
-#include "retardo.h"
+#include "util.h"
 
 void retardo(int ciclos);
-
-void print_bin(unsigned char byte)
-{
-    for (int i = 7; i >= 0; i--)
-    {
-        printf("%c", (byte & (1 << i)) ? '1' : '0');
-    }
-}
 
 void autoFantastico(int velocidad)
 {
