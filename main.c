@@ -1,17 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "menu.h"
-#include "retardo.h"
-#include "auto_fantastico.h"
-#include "choque.h"
-#include "ascensor.h"
-#include "explosion_contraccion.h"
-
-void autoFantastico(int velocidad);
-void elChoque(int velocidad);
-void ascensor(int velocidad);
-// void pedirPassword();
+#include "funciones.c"
 
 int main()
 {
