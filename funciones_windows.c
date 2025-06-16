@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <termios.h>
-#include <fcntl.h>
+#include <conio.h>
 
 // Variable global para mantener la velocidad entre secuencias
 int velocidadGlobal = 100000;
@@ -11,7 +10,7 @@ int velocidadGlobal = 100000;
 // Declaración anticipada
 int verificarEntradaUsuario();
 
-// Retardo interactivo para permitir control inmediato en Raspberry Pi
+// Retardo interactivo para permitir control inmediato
 void retardoInteractivo(int total_us)
 {
     int paso = 2000; // 2 ms
@@ -32,70 +31,61 @@ void retardoInteractivo(int total_us)
     }
 }
 
-// Función para configurar entrada no bloqueante (compatible con Raspberry Pi)
-void configurarEntradaNoBloqueante()
-{
-    struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-
-    int oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-}
-
-// Función para restaurar entrada normal
-void restaurarEntradaNormal()
-{
-    struct termios oldt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    oldt.c_lflag |= (ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-
-    int oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf & ~O_NONBLOCK);
-}
-
-// Función para verificar entrada del usuario (salida y control de velocidad)
+// Función para verificar entrada del usuario (salida y control de velocidad) - versión Windows
 int verificarEntradaUsuario()
 {
-    char c;
-    if (read(STDIN_FILENO, &c, 1) > 0)
+    if (_kbhit())
     {
+        char c = _getch();
+        // printf("DEBUG: Tecla detectada: %d (0x%02X)\n", c, c); // Debug eliminado
+
         if (c == 'q' || c == 'Q')
         {             // 'q' o 'Q' para salir
             return 1; // Salir
         }
         else if (c == 27)
-        { // ESC - podría ser inicio de secuencia de flecha
-            // Leer los siguientes caracteres para detectar flechas
-            char c2, c3;
-            if (read(STDIN_FILENO, &c2, 1) > 0 && c2 == '[')
+        {             // ESC para salir
+            return 1; // Salir con ESC
+        }
+        else if (c == 224 || c == 0)
+        { // Tecla especial
+            if (_kbhit())
             {
-                if (read(STDIN_FILENO, &c3, 1) > 0)
+                char c2 = _getch();
+                // printf("DEBUG: Segunda tecla: %d (0x%02X)\n", c2, c2); // Debug eliminado
+
+                // Flecha arriba - múltiples códigos posibles
+                if (c2 == 72 || c2 == 'H' || c2 == 'A')
                 {
-                    if (c3 == 'A')
-                    { // Flecha arriba
-                        velocidadGlobal = velocidadGlobal > 10000 ? velocidadGlobal - 10000 : 10000;
-                        printf("\rVelocidad: %d microsegundos    ", velocidadGlobal);
-                        fflush(stdout);
-                        return 2; // Velocidad aumentada
-                    }
-                    else if (c3 == 'B')
-                    { // Flecha abajo
-                        velocidadGlobal = velocidadGlobal < 500000 ? velocidadGlobal + 10000 : 500000;
-                        printf("\rVelocidad: %d microsegundos    ", velocidadGlobal);
-                        fflush(stdout);
-                        return 3; // Velocidad disminuida
-                    }
+                    velocidadGlobal = velocidadGlobal > 10000 ? velocidadGlobal - 10000 : 10000;
+                    printf("\rVelocidad: %d microsegundos    ", velocidadGlobal);
+                    fflush(stdout);
+                    return 2; // Velocidad aumentada
+                }
+                // Flecha abajo - múltiples códigos posibles
+                else if (c2 == 80 || c2 == 'P' || c2 == 'B')
+                {
+                    velocidadGlobal = velocidadGlobal < 500000 ? velocidadGlobal + 10000 : 500000;
+                    printf("\rVelocidad: %d microsegundos    ", velocidadGlobal);
+                    fflush(stdout);
+                    return 3; // Velocidad disminuida
                 }
             }
-            else
-            {
-                // Si no es una secuencia de flecha, es ESC para salir
-                return 1; // Salir
-            }
+        }
+        // Códigos alternativos para flechas (algunos terminales usan estos)
+        else if (c == 'H')
+        { // Flecha arriba alternativa
+            velocidadGlobal = velocidadGlobal > 10000 ? velocidadGlobal - 10000 : 10000;
+            printf("\rVelocidad: %d microsegundos    ", velocidadGlobal);
+            fflush(stdout);
+            return 2;
+        }
+        else if (c == 'P')
+        { // Flecha abajo alternativa
+            velocidadGlobal = velocidadGlobal < 500000 ? velocidadGlobal + 10000 : 500000;
+            printf("\rVelocidad: %d microsegundos    ", velocidadGlobal);
+            fflush(stdout);
+            return 3;
         }
     }
     return 0; // No hay entrada
@@ -179,8 +169,6 @@ void autoFantastico(int velocidad)
     printf("00000000\n");
     printf("Iniciando secuencia...\n\n");
 
-    configurarEntradaNoBloqueante();
-
     unsigned char led = 0x01;
     int direccion = 1;
 
@@ -192,7 +180,6 @@ void autoFantastico(int velocidad)
             printf("Apagando todas las luces...\n");
             printf("00000000\n");
             velocidadGlobal = 100000;
-            restaurarEntradaNormal();
             return;
         }
         printf("Paso %d: ", i);
@@ -212,7 +199,6 @@ void autoFantastico(int velocidad)
     printf("Apagando todas las luces...\n");
     printf("00000000\n");
     velocidadGlobal = 100000;
-    restaurarEntradaNormal();
 }
 
 // Función El Choque
@@ -226,8 +212,6 @@ void elChoque(int velocidad)
     printf("00000000\n");
     printf("Iniciando secuencia...\n\n");
 
-    configurarEntradaNoBloqueante();
-
     unsigned char tabla[7] = {0x80, 0x42, 0x24, 0x18, 0x18, 0x24, 0x42};
     int direccion = 1;
     int index = 0;
@@ -240,7 +224,6 @@ void elChoque(int velocidad)
             printf("Apagando todas las luces...\n");
             printf("00000000\n");
             velocidadGlobal = 100000;
-            restaurarEntradaNormal();
             return;
         }
         printf("Paso %d: ", i);
@@ -260,7 +243,6 @@ void elChoque(int velocidad)
     printf("Apagando todas las luces...\n");
     printf("00000000\n");
     velocidadGlobal = 100000;
-    restaurarEntradaNormal();
 }
 
 // Función Ascensor
@@ -274,8 +256,6 @@ void ascensor(int velocidad)
     printf("00000000\n");
     printf("Iniciando secuencia...\n\n");
 
-    configurarEntradaNoBloqueante();
-
     unsigned char pisos[4] = {0x01, 0x02, 0x04, 0x08};
     int direccion = 1;
     int piso = 0;
@@ -288,7 +268,6 @@ void ascensor(int velocidad)
             printf("Apagando todas las luces...\n");
             printf("00000000\n");
             velocidadGlobal = 100000;
-            restaurarEntradaNormal();
             return;
         }
         printf("Piso %d: ", piso + 1);
@@ -307,7 +286,6 @@ void ascensor(int velocidad)
     printf("Apagando todas las luces...\n");
     printf("00000000\n");
     velocidadGlobal = 100000;
-    restaurarEntradaNormal();
 }
 
 // Función Explosión y Contracción
@@ -320,8 +298,6 @@ void explosionYContraccion(int velocidad)
     printf("Apagando todas las luces...\n");
     printf("00000000\n");
     printf("Iniciando secuencia...\n\n");
-
-    configurarEntradaNoBloqueante();
 
     unsigned char secuencia[] = {
         0x18, // 00011000
@@ -342,7 +318,6 @@ void explosionYContraccion(int velocidad)
             printf("Apagando todas las luces...\n");
             printf("00000000\n");
             velocidadGlobal = 100000;
-            restaurarEntradaNormal();
             return;
         }
         printf("Paso %d: ", i + 1);
@@ -355,5 +330,4 @@ void explosionYContraccion(int velocidad)
     printf("Apagando todas las luces...\n");
     printf("00000000\n");
     velocidadGlobal = 100000;
-    restaurarEntradaNormal();
 }
