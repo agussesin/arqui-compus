@@ -13,6 +13,12 @@ snake:
     // Save parameter
     mov x19, x0
 
+    // Reset velocidadGlobal to 100000 (0x186A0)
+    adrp x0, velocidadGlobal
+    movz w1, #0x86A0, lsl #0    // Lower 16 bits
+    movk w1, #0x1, lsl #16      // Upper 16 bits
+    str w1, [x0, #:lo12:velocidadGlobal]
+
     // Configure non-blocking input
     bl configurarEntradaNoBloqueante
 
@@ -23,8 +29,8 @@ snake:
 snake_loop:
     // Check if we should exit (velocidadGlobal == -1)
     adrp x0, velocidadGlobal
-    ldr x0, [x0, #:lo12:velocidadGlobal]
-    cmp x0, #-1
+    ldr w0, [x0, #:lo12:velocidadGlobal]
+    cmp w0, #-1
     beq snake_fin
 
     // Update LEDs with current pattern
@@ -33,8 +39,14 @@ snake_loop:
 
     // Get delay from velocidadGlobal
     adrp x0, velocidadGlobal
-    ldr x0, [x0, #:lo12:velocidadGlobal]
+    ldr w0, [x0, #:lo12:velocidadGlobal]
     bl retardoInteractivo
+
+    // Check again after delay (in case q was pressed)
+    adrp x0, velocidadGlobal
+    ldr w0, [x0, #:lo12:velocidadGlobal]
+    cmp w0, #-1
+    beq snake_fin
 
     // Shift left and add 1
     lsl x20, x20, #1
