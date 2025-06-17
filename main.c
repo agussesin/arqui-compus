@@ -1,21 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "menu.h"
-#include "retardo.h"
-#include "auto_fantastico.h"
-#include "choque.h"
-#include "ascensor.h"
-#include "explosion_contraccion.h"
+#include "EasyPIO.h"
+#include "funciones.h"
 
-void autoFantastico(int velocidad);
-void elChoque(int velocidad);
-void ascensor(int velocidad);
-// void pedirPassword();
+// Definición de pines GPIO para los LEDs
+const char led[] = {17, 18, 27, 22, 23, 24, 25, 4}; // Pines GPIO
 
 int main()
 {
-    // pedirPassword();
+    // Inicialización de GPIO
+    pioInit();
+
+    // Configurar los pines como salida
+    for(int i = 0; i < 8; i++) {
+        pinMode(led[i], OUTPUT);
+    }
+
+    // Apagar todos los LEDs (active low)
+    leds(0xFF);
+
+    pedirPassword();
 
     int opcion = 0;
     int velocidad = 100000;
@@ -34,7 +39,7 @@ int main()
             elChoque(velocidad);
             break;
         case 3:
-            ascensor(velocidad);
+            snake(velocidad);
             break;
         case 4:
             explosionYContraccion(velocidad);
